@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
 import {Link} from 'react-router-dom'
 import validation from './LoginValidation';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 function Login() {
+   
+   const navigate = useNavigate();
    const [values,setValues] = useState({
         email: '',
         password: ''
@@ -13,12 +17,37 @@ function Login() {
 
    }
 
-   const handleSubmit = (Event) => {
-    Event.preventDefault();
-    setErrors(validation(values));
-    
 
-   }
+   const handleSubmit = (e) => {
+   e.preventDefault();
+
+  // Validate form inputs
+  const validationErrors = validation(values);
+  setErrors(validationErrors);
+
+  // Only proceed if no errors
+  if (Object.values(validationErrors).every(error => error === "")) {
+    axios.post("http://localhost:8081/login", values)
+      .then(res => {
+        if (res.data.message === "Login success") {
+          const { name, role } = res.data;
+
+          // Store user info in localStorage
+          localStorage.setItem("user", JSON.stringify({ name, role }));
+
+          // Navigate to a common dashboard route
+          navigate("/dashboard");
+        } else {
+          alert("Invalid email or password");  // Or set a login error state
+        }
+      })
+      .catch(err => {
+        console.error("Login error:", err);
+        alert("Server error. Please try again later.");
+      });
+  }
+};
+
   return (
     <div className='d-flex justify-content-center align-items-center bg-primary vh-100'>
       <div className='bg-white p-3 rounded w-25'>

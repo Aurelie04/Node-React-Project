@@ -1,6 +1,8 @@
 import React, {useState} from 'react'
-import { Link } from 'react-router-dom'
+import {Link} from 'react-router-dom'
 import validation from './SignUpValidation';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 function Signup() {
 
@@ -12,23 +14,39 @@ function Signup() {
         email: '',
         password: ''
    })
+   const navigate = useNavigate();
    const [errors, setErrors] = useState({})
    const handleInput =(e) => {
      setValues(prev => ({ ...prev, [e.target.name]: e.target.value }))
 
    }
 
-   const handleSubmit = (Event) => {
-    Event.preventDefault();
-    setErrors(validation(values));
-    
+   console.log("React handleSubmit triggered");
+   console.log("Values being submitted:", values);
 
-   }
+
+   const handleSubmit = (e) => {
+    e.preventDefault();
+    const validationErrors = validation(values);
+    setErrors(validationErrors);
+ if (Object.values(validationErrors).every(error => error === "")) {
+    axios.post('http://localhost:8081/signup', values)
+      .then(res => {
+        console.log("Signup successful:", res.data);
+        navigate('/');
+      })
+      .catch(err => {
+        console.error("Signup failed:", err);
+      });
+  } else {
+    console.log("Validation failed:", validationErrors);
+  }
+};
   return (
     <div className='d-flex justify-content-center align-items-center bg-primary vh-100'>
           <div className='bg-white p-3 rounded w-25'>
             <h2>Sign Up</h2>
-            <form action='' onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit}>
               <div className='mb-3'>
                 <label htmlFor='name'><strong>Name</strong></label>
                 <input type='text' placeholder='Enter Name' name='name' 
@@ -65,7 +83,19 @@ function Signup() {
                  onChange={handleInput} className='form-control rounded-0' />
                  {errors.password && <span className='text-danger'> {errors.password}</span>}
               </div>
-              <button type='submit' className='btn btn-success w-100'><strong>Sign up</strong></button>
+              <div>
+               <label htmlFor='role'><strong>Role</strong></label>
+               <select name='role' onChange={handleInput} className='form-control rounded-0'>
+                 <option value="">Select Role</option>
+                 <option value="Farmer">Farmer</option>
+                 <option value="Buyer">Buyer</option>
+                 <option value="Trader">Trader</option>
+                 <option value="Financier">Financier</option>
+                 <option value="Logistics">Logistics</option>
+                 {errors.role && <span className='text-danger'> {errors.role}</span>}
+                </select>
+              </div>
+              <br></br><button type='submit' className='btn btn-success w-100'><strong>Sign up</strong></button>
               <p className='text-center mt-2'>Forgot password?</p>
               <Link to="/" className='btn btn-outline-primary w-100 bg-light rounded-0 text-decoration-none'>Login</Link>
             </form>

@@ -19,7 +19,7 @@ function validation(values) {
   }else{
     error.address = ""
   }
- if(values.business === ""){
+ if(values.businessType === ""){
      error.businessType = "Business Type should not be empty"
   }else{
     error.businessType = ""
